@@ -11,24 +11,27 @@
 import subprocess
 import os
 
-YT_DLP = r"D:\Work App\Python311\azcx\Scripts\yt-dlp.exe"       # yt-dlp.exe 是一个用来下载在线视频/音频的命令行工具，在 Windows 上的可执行文件版本。
-URL = "https://www.youtube.com/watch?v=VwR6u3Od-NI"             # YouTube视频的链接
+# 使用刚才 pip 安装提示的绝对路径
+YT_DLP = r"C:\Users\xzz\AppData\Local\Python\pythoncore-3.14-64\Scripts\yt-dlp.exe"
 
+URL = "https://www.youtube.com/watch?v=W9OGD_egM_Q"
 OUT_DIR = "video_download"
 os.makedirs(OUT_DIR, exist_ok=True)
 
-cmd = [
-    YT_DLP,
-    "-f", "bv*+ba/b",          # 最佳视频 + 最佳音频
-    "--merge-output-format", "mp4",
-    "-o", f"{OUT_DIR}/%(title)s.%(ext)s",
-    URL
-]
-
-subprocess.run(cmd)
-
-print("✅ 视频下载完成")
-
+# 建议加一个检查，万一路径抄错了能立刻知道
+if not os.path.exists(YT_DLP):
+    print(f"❌ 路径依然不对，请检查：{YT_DLP}")
+else:
+    cmd = [
+        YT_DLP,
+        "-f", "bv*+ba/b",
+        "--merge-output-format", "mp4",
+        "-o", f"{OUT_DIR}/%(title)s.%(ext)s",
+        URL
+    ]
+    print("🚀 正在下载...")
+    subprocess.run(cmd)
+    print("✅ 任务结束")
 
 
 '''
