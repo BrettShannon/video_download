@@ -1,0 +1,151 @@
+import subprocess
+import os
+from pathlib import Path
+
+# --- 1. 基础配置（确定的绝对路径） ---
+# 使用 r"" 避免那个讨厌的 Unicode 路径报错
+YT_DLP = r"C:\Users\xzz\AppData\Local\Python\pythoncore-3.14-64\Scripts\yt-dlp.exe"
+FFMPEG = r"D:\work_app\ffmpeg\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe"
+SAVE_DIR = Path(r"C:\Users\xzz\video_download")
+
+def download_video_smart(url):
+    # 确保保存目录存在
+    SAVE_DIR.mkdir(exist_ok=True)
+    
+    # 定义临时文件名和最终文件名
+    v_temp = SAVE_DIR / "temp_video.mp4"
+    a_temp = SAVE_DIR / "temp_audio.webm"
+    final_output = SAVE_DIR / "Downloaded_Video.mp4"
+
+    print(f"🎬 准备下载任务...")
+
+    try:
+        # --- 2. 下载视频流 (bv = best video) ---
+        print("📥 正在下载最佳画质视频（无声）...")
+        subprocess.run([YT_DLP, "-f", "bv", "-o", str(v_temp), url], check=True)
+
+        # --- 3. 下载音频流 (ba = best audio) ---
+        print("📥 正在下载最佳音质音频...")
+        subprocess.run([YT_DLP, "-f", "ba", "-o", str(a_temp), url], check=True)
+
+        # --- 4. 使用 FFmpeg 合并 ---
+        print("🔗 正在极速合并音视频...")
+        # -c:v copy 表示直接复制视频，不重编码，速度极快
+        # -y 表示如果文件已存在则覆盖
+        cmd = [
+            FFMPEG, "-i", str(v_temp), "-i", str(a_temp),
+            "-c:v", "copy", "-c:a", "aac", "-y", str(final_output)
+        ]
+        subprocess.run(cmd, check=True)
+
+        # --- 5. 过河拆桥（清理临时文件） ---
+        v_temp.unlink(missing_ok=True)
+        a_temp.unlink(missing_ok=True)
+        print(f"✅ 大功告成！最终文件：{final_output}")
+        
+        # 自动打开文件夹
+        os.startfile(SAVE_DIR)
+
+    except Exception as e:
+        print(f"❌ 出错了: {e}")
+
+# --- 运行处 ---
+if __name__ == "__main__":
+    video_url = "https://www.youtube.com/watch?v=W9OGD_egM_Q"
+    download_video_smart(video_url)
+    
+
+
+'''
+Gemini 说
+没问题，伙计！既然你已经打通了 yt-dlp 和 FFmpeg 的任督二脉，我们把它们整合成一个**“全自动工作流”**。
+
+这段代码的目标是：你给它一个链接，它还你一个完美合并的高清视频，中间产生的“垃圾文件”自动清空。
+
+🚀 全自动音视频下载合并脚本
+Python
+import subprocess
+import os
+from pathlib import Path
+
+# --- 1. 基础配置（确定的绝对路径） ---
+# 使用 r"" 避免那个讨厌的 Unicode 路径报错
+YT_DLP = r"C:\Users\xzz\AppData\Local\Python\pythoncore-3.14-64\Scripts\yt-dlp.exe"
+FFMPEG = r"D:\work_app\ffmpeg\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe"
+SAVE_DIR = Path(r"C:\Users\xzz\video_download")
+
+def download_video_smart(url):
+    # 确保保存目录存在
+    SAVE_DIR.mkdir(exist_ok=True)
+    
+    # 定义临时文件名和最终文件名
+    v_temp = SAVE_DIR / "temp_video.mp4"
+    a_temp = SAVE_DIR / "temp_audio.webm"
+    final_output = SAVE_DIR / "Downloaded_Video.mp4"
+
+    print(f"🎬 准备下载任务...")
+
+    try:
+        # --- 2. 下载视频流 (bv = best video) ---
+        print("📥 正在下载最佳画质视频（无声）...")
+        subprocess.run([YT_DLP, "-f", "bv", "-o", str(v_temp), url], check=True)
+
+        # --- 3. 下载音频流 (ba = best audio) ---
+        print("📥 正在下载最佳音质音频...")
+        subprocess.run([YT_DLP, "-f", "ba", "-o", str(a_temp), url], check=True)
+
+        # --- 4. 使用 FFmpeg 合并 ---
+        print("🔗 正在极速合并音视频...")
+        # -c:v copy 表示直接复制视频，不重编码，速度极快
+        # -y 表示如果文件已存在则覆盖
+        cmd = [
+            FFMPEG, "-i", str(v_temp), "-i", str(a_temp),
+            "-c:v", "copy", "-c:a", "aac", "-y", str(final_output)
+        ]
+        subprocess.run(cmd, check=True)
+
+        # --- 5. 过河拆桥（清理临时文件） ---
+        v_temp.unlink(missing_ok=True)
+        a_temp.unlink(missing_ok=True)
+        print(f"✅ 大功告成！最终文件：{final_output}")
+        
+        # 自动打开文件夹
+        os.startfile(SAVE_DIR)
+
+    except Exception as e:
+        print(f"❌ 出错了: {e}")
+
+# --- 运行处 ---
+if __name__ == "__main__":
+    video_url = "https://www.youtube.com/watch?v=W9OGD_egM_Q"
+    download_video_smart(video_url)
+📘 代码深度解析
+1. 为什么我们要分两步下载？
+YouTube 的高清视频（1080P 及以上）在服务器上是音画分离存储的。
+
+第一步： 我们用 -f bv (best video) 只抓取最高清的画面。
+
+第二步： 我们用 -f ba (best audio) 只抓取最高质量的音轨。
+
+如果不分两步，直接下载一个整合好的 MP4，YouTube 通常只给最高 720P。
+
+2. FFmpeg 的“手术刀”操作
+Python
+"-c:v", "copy"
+这一行是整段代码的灵魂。它告诉 FFmpeg：“不要重新计算画面（重编码），直接把视频流‘拷贝’进新的 MP4 容器里。”
+
+好处： 合并 1GB 的视频可能只需要 3 秒钟，而且画质没有任何损失。
+
+3. Pathlib 的妙用
+我们用了 from pathlib import Path。相比于旧的 os.path，它处理 Windows 路径更友好。
+
+v_temp.unlink()：这一行非常优雅地把下载好的临时文件给“咔嚓”掉了，保证你的硬盘不会堆满几十个没声音的视频残骸。
+
+4. r"" 字符串
+这就是解决你之前 SyntaxError 的终极武器。只要路径前面带了 r，不管是 \Users 还是 \Desktop，Python 都会乖乖听话，不再乱猜转义字符。
+
+💡 进阶：你想让文件名自动匹配视频标题吗？
+目前代码里写死了叫 Downloaded_Video.mp4。如果你希望下载下来的文件名直接就是 《阿弥陀佛的底层逻辑...》，我可以教你如何用 yt-dlp 的变量自动获取标题。
+
+需要我帮你把“自动命名标题”的功能加上去吗？
+'''
